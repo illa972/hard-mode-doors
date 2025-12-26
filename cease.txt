@@ -65,10 +65,5 @@ local function spawnCease()
     entity:Run()
 end
 
--- ТЕСТ-КНОПКА
-local sg = Instance.new("ScreenGui", game.CoreGui)
-local b = Instance.new("TextButton", sg)
-b.Size, b.Position, b.Text = UDim2.new(0,180,0,45), UDim2.new(0.5,-90,0.8,0), "CEASE (COORD CHECK)"
-b.BackgroundColor3, b.TextColor3, b.Draggable, b.Active = Color3.fromRGB(0, 100, 255), Color3.new(1,1,1), true, true
-Instance.new("UICorner", b)
-b.MouseButton1Click:Connect(spawnCease)
+
+spawnCease()
