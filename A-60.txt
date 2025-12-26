@@ -1,0 +1,50 @@
+local spawner = loadstring(game:HttpGet("https://raw.githubusercontent.com/RegularVynixu/Utilities/main/Doors/Entity%20Spawner/V2/Source.lua"))()
+
+local function spawnA60()
+    local entity = spawner.Create({
+        Entity = {
+            Name = "A-60",
+            Asset = "rbxassetid://12263106166",
+            HeightOffset = 0
+        },
+        Movement = {
+            Speed = 250, 
+            Delay = 1,
+            Reversed = false
+        },
+        Damage = {
+            Enabled = true,
+            Range = 50,
+            Amount = 100
+        },
+        CameraShake = {
+            Enabled = true,
+            Range = 100,
+            Values = {3.5, 20, 0.05, 1}
+        },
+        Lights = {
+            Flicker = { Enabled = true, Duration = 0.5 },
+            Shatter = true, 
+            Repair = false
+        }
+    })
+
+    entity:SetCallback("OnKillingPlayer", function()
+        pcall(function()
+            firesignal(game.ReplicatedStorage.RemotesFolder.DeathHint.OnClientEvent, {
+                "Ты погиб от A-60...", 
+                "Он гораздо быстрее других. Прячься заранее!"
+            }, "Blue")
+        end)
+    end)
+
+    entity:Run()
+end
+
+-- ТЕСТ-КНОПКА
+local sg = Instance.new("ScreenGui", game.CoreGui)
+local b = Instance.new("TextButton", sg)
+b.Size, b.Position, b.Text = UDim2.new(0,180,0,45), UDim2.new(0.5,-90,0.8,0), "SPAWN A-60"
+b.BackgroundColor3, b.TextColor3, b.Draggable, b.Active = Color3.fromRGB(0, 100, 200), Color3.new(1,1,1), true, true
+Instance.new("UICorner", b).CornerRadius = UDim.new(0,8)
+b.MouseButton1Click:Connect(spawnA60)

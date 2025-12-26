@@ -1,0 +1,106 @@
+local spawner = loadstring(game:HttpGet("https://raw.githubusercontent.com/RegularVynixu/Utilities/main/Doors/Entity%20Spawner/V2/Source.lua"))()
+
+-- 1. ЗАВАНТАЖЕННЯ КАСТОМНОГО ЗВУКУ (Для інжекторів)
+local function GetCustomSound(url, fileName)
+    if not isfile(fileName) then
+        pcall(function() writefile(fileName, game:HttpGet(url)) end)
+    end
+    return (isfile(fileName) and getcustomasset(fileName)) or ""
+end
+
+local ripperAudio = GetCustomSound("https://raw.githubusercontent.com/illa972/audio-ripper-doors/main/Ripper_arrival.mp3.mpeg.mp3", "RipperArrival.mp3")
+
+---====== ЧИСТИЙ КОД RIPPER ======---
+local function SpawnRipper()
+    local TweenService = game:GetService("TweenService")
+    local latestRoom = game.ReplicatedStorage.GameData.LatestRoom.Value
+    
+    -- АТМОСФЕРА: Всі пройдені кімнати стають червоними
+    for i = 0, latestRoom do
+        local room = workspace.CurrentRooms:FindFirstChild(tostring(i))
+        if room then
+            for _, light in pairs(room:GetDescendants()) do
+                if light:IsA("Light") then
+                    TweenService:Create(light, TweenInfo.new(3), {
+                        Color = Color3.fromRGB(255, 0, 0), 
+                        Brightness = light.Brightness * 1.5
+                    }):Play()
+                end
+            end
+        end
+    end
+
+    -- ЗВУК: Твій аудіо-файл через 2 секунди після активації
+    task.delay(2, function()
+        local s = Instance.new("Sound", workspace)
+        s.SoundId = ripperAudio
+        s.Volume = 3
+        s:Play()
+        task.delay(15, function() s:Destroy() end)
+    end)
+
+    task.wait(10) -- Час на те, щоб гравець сховався
+
+    -- СПАВН: Основні налаштування руху
+    local entity = spawner.Create({
+        Entity = { 
+            Name = "Ripper", 
+            Asset = "rbxassetid://12262768551", -- Твій ID моделі
+            HeightOffset = 0 
+        },
+        Movement = { 
+            Speed = 95, 
+            Delay = 0, 
+            Reversed = false 
+        },
+        Rebounding = { Enabled = false }, -- Тільки в один бік
+        Damage = { Enabled = false },     -- Стандартний дамаж вимкнено для кастомного
+        CameraShake = { Enabled = true, Range = 120, Values = {5, 40, 0.1, 1} },
+        Lights = { Flicker = { Enabled = false }, Shatter = false }
+    })
+
+    -- МЕХАНІКА СМЕРТІ: 15 студів + білий шум
+    local killed = false
+    task.spawn(function()
+        local player = game.Players.LocalPlayer
+        while entity and not killed do
+            local model = workspace:FindFirstChild("Ripper") or workspace:FindFirstChild("Entity")
+            if model and (model.PrimaryPart or model:FindFirstChildWhichIsA("BasePart")) then
+                local part = model.PrimaryPart or model:FindFirstChildWhichIsA("BasePart")
+                local dist = (player.Character.HumanoidRootPart.Position - part.Position).Magnitude
+                
+                if dist <= 15 then
+                    killed = true
+                    player.Character.Humanoid.Health = 0
+                    
+                    -- Візуальний ефект білого шуму
+                    local sg = Instance.new("ScreenGui", player.PlayerGui)
+                    sg.IgnoreGuiInset = true
+                    local img = Instance.new("ImageLabel", sg)
+                    img.Size = UDim2.new(1,0,1,0)
+                    img.Image = "rbxassetid://132410545"
+                    img.BackgroundTransparency = 1
+                    img.ImageTransparency = 0.5
+                    
+                    local sn = Instance.new("Sound", workspace)
+                    sn.SoundId = "rbxassetid://155450849"
+                    sn.Volume = 2
+                    sn:Play()
+                    
+                    task.spawn(function()
+                        while true do
+                            img.Position = UDim2.new(0, math.random(-15,15), 0, math.random(-15,15))
+                            task.wait(0.05)
+                        end
+                    end)
+                end
+            end
+            task.wait(0.05)
+        end
+    end)
+
+    entity:Run()
+end
+
+-- Запуск функції
+SpawnRipper()

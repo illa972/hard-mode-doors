@@ -1,0 +1,54 @@
+local spawner = loadstring(game:HttpGet("https://raw.githubusercontent.com/RegularVynixu/Utilities/main/Doors/Entity%20Spawner/V2/Source.lua"))()
+
+local function spawnA200()
+    local sRoom = game.ReplicatedStorage.GameData.LatestRoom.Value
+
+    local entity = spawner.Create({
+        Entity = {
+            Name = "A-200",
+            Asset = "rbxassetid://12984237084", -- Твій ID
+            HeightOffset = 0
+        },
+        Movement = {
+            Speed = 350, 
+            Delay = 1,
+            RoomStart = sRoom - 5, 
+            RoomEnd = sRoom + 50, -- Летить далеко вперед
+            Reversed = false,
+            CanTrace = true
+        },
+        -- Переконуємось, що Rebounding вимкнено, щоб пролетів лише 1 раз
+        Rebounding = {
+            Enabled = false 
+        },
+        Damage = {
+            Enabled = true,
+            Range = 50,
+            Amount = 100
+        },
+        CameraShake = {
+            Enabled = true,
+            Range = 120,
+            Values = {4, 25, 0.05, 1}
+        },
+        Lights = {
+            Flicker = { Enabled = true, Duration = 0.4 },
+            Shatter = true,
+            Repair = false
+        }
+    })
+
+    -- Синя підказка
+    entity:SetCallback("OnKillingPlayer", function()
+        pcall(function()
+            firesignal(game.ReplicatedStorage.RemotesFolder.DeathHint.OnClientEvent, {
+                "Ты погиб от A-200...", 
+                "Он пролетает только один раз, но делает это мгновенно!"
+            }, "Blue")
+        end)
+    end)
+
+    entity:Run()
+end
+
+spawnA200()

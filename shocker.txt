@@ -1,0 +1,55 @@
+local function spawnShocker()
+    local p = game.Players.LocalPlayer
+    local char = p.Character or p.CharacterAdded:Wait()
+    local cam = workspace.CurrentCamera
+
+    -- Завантаження та установка моделі
+    local mod = game:GetObjects("rbxassetid://11547803978")[1]
+    mod.PrimaryPart = mod:FindFirstChild("HumanoidRootPart") or mod:FindFirstChildWhichIsA("BasePart")
+    mod.Parent = workspace
+    mod:SetPrimaryPartCFrame(cam.CFrame * CFrame.new(0, 0, -7))
+
+    local ooga = mod:WaitForChild("OOGA BOOGAAAA")
+    local scrm = ooga:WaitForChild("HORROR SCREAM 15")
+    local start = tick()
+
+    task.spawn(function()
+        while mod.Parent do
+            task.wait(0.1)
+            local dot = cam.CFrame.LookVector:Dot((ooga.Position - cam.CFrame.Position).unit)
+
+            if dot > 0.9 then
+                if tick() - start >= 4 then
+                    if scrm then scrm:Play() end
+                    char.Humanoid:TakeDamage(30)
+                    
+                    -- Рух вниз до гравця (атака)
+                    while ooga.Position.Y > char.PrimaryPart.Position.Y do
+                        ooga.Position = ooga.Position + (char.PrimaryPart.Position - ooga.Position).unit * 1.5
+                        task.wait(0.05)
+                    end
+                    
+                    pcall(function()
+                        firesignal(game.ReplicatedStorage.RemotesFolder.DeathHint.OnClientEvent, {"You died to Shocker...","Don't look at it!"},"Blue")
+                    end)
+                    break
+                end
+            else break end
+        end
+        ooga.CanCollide, ooga.Anchored = false, false
+        task.wait(1.5)
+        mod:Destroy()
+    end)
+
+    -- Видача ачивки
+    pcall(function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/RegularVynixu/Utilities/main/Doors/Custom%20Achievements/Source.lua"))()({
+            Title = "Shocking Experience",
+            Desc = "Look at me.",
+            Reason = "Encounter Shocker.",
+            Image = "rbxassetid://17857830685"
+        })
+    end)
+end
+
+spawnShocker()

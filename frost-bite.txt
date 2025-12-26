@@ -1,0 +1,61 @@
+local spawner = loadstring(game:HttpGet("https://raw.githubusercontent.com/RegularVynixu/Utilities/main/Doors/Entity%20Spawner/V2/Source.lua"))()
+
+local function spawnFrostBite()
+    local lp = game.Players.LocalPlayer
+    local char = lp.Character
+    local hum = char:FindFirstChildOfClass("Humanoid")
+    local root = char:FindFirstChild("HumanoidRootPart")
+    local sRoom = game.ReplicatedStorage.GameData.LatestRoom.Value
+
+    local entity = spawner.Create({
+        Entity = { Name = "FrostBite", Asset = "rbxassetid://12797521669", HeightOffset = 0 },
+        Movement = { Speed = 0.1, Delay = 0, RoomStart = sRoom, RoomEnd = sRoom + 1, Reversed = false },
+        Damage = { Enabled = false },
+        CameraShake = { Enabled = true, Range = 40, Values = {1.5, 15, 0.2, 1} }
+    })
+
+    entity:SetCallback("OnSpawned", function()
+        local m = workspace:FindFirstChild("FrostBite")
+        if not m or not root then return end
+        
+        -- Позиціонування: 18 блоків вперед, 10 вгору
+        m:PivotTo(root.CFrame * CFrame.new(0, 10, -18))
+        
+        for _, v in ipairs(m:GetDescendants()) do
+            if v:IsA("BasePart") then v.Anchored, v.CanTouch = true, false end
+        end
+
+        -- Ефект холоду (Шкода + Сповільнення)
+        task.spawn(function()
+            while m.Parent and hum.Health > 0 do
+                local dist = (root.Position - (m.PrimaryPart or m:FindFirstChildWhichIsA("BasePart")).Position).Magnitude
+                if dist < 60 then
+                    hum.WalkSpeed = math.max(6, hum.WalkSpeed - 0.7)
+                    hum.Health -= 2
+                end
+                task.wait(0.4)
+            end
+            hum.WalkSpeed = 16
+        end)
+    end)
+
+    -- Видалення при переході в іншу кімнату
+    local conn
+    conn = game.ReplicatedStorage.GameData.LatestRoom.Changed:Connect(function()
+        local m = workspace:FindFirstChild("FrostBite")
+        if m then m:Destroy() end
+        conn:Disconnect()
+    end)
+
+    -- Синя підказка при смерті
+    entity:SetCallback("OnKillingPlayer", function()
+        firesignal(game.ReplicatedStorage.RemotesFolder.DeathHint.OnClientEvent, {
+            "Ты замёрз насмерть от Frost Bite...", 
+            "Он высасывает тепло. Беги к следующей двери быстрее!"
+        }, "Blue")
+    end)
+
+    entity:Run()
+end
+
+spawnFrostBite()
