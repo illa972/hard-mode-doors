@@ -2,7 +2,6 @@ local function spawnCease()
     local TweenService = game:GetService("TweenService")
     local spawner = loadstring(game:HttpGet("https://raw.githubusercontent.com/RegularVynixu/Utilities/main/Doors/Entity%20Spawner/V2/Source.lua"))()
 
-    -- 1. СИНЄ СВІТЛО (Плавний перехід у всіх кімнатах)
     local latestRoom = game.ReplicatedStorage.GameData.LatestRoom.Value
     for i = 0, latestRoom do
         local room = workspace.CurrentRooms:FindFirstChild(tostring(i))
@@ -10,26 +9,20 @@ local function spawnCease()
             for _, obj in pairs(room:GetDescendants()) do
                 if obj:IsA("Light") then
                     TweenService:Create(obj, TweenInfo.new(3), {Color = Color3.fromRGB(0, 100, 255), Brightness = obj.Brightness * 1.5}):Play()
-                elseif obj:IsA("Part") and (obj.Name == "Neon" or obj.Material == Enum.Material.Neon) then
+                elseif obj:A("Part") and (obj.Name == "Neon" or obj.Material == Enum.Material.Neon) then
                     TweenService:Create(obj, TweenInfo.new(3), {Color = Color3.fromRGB(0, 100, 255)}):Play()
                 end
             end
         end
     end
 
-    -- 2. СТВОРЕННЯ СУТНОСТІ
     local entity = spawner.Create({
-        Entity = {
-            Name = "Cease",
-            Asset = "rbxassetid://12262854624",
-            HeightOffset = 0
-        },
+        Entity = { Name = "Cease", Asset = "rbxassetid://12262854624", HeightOffset = 0 },
         Movement = { Speed = 45, Delay = 3, Reversed = false },
-        Damage = { Enabled = false }, -- Вбиваємо скриптом за рух
+        Damage = { Enabled = false },
         Lights = { Flicker = { Enabled = true, Duration = 2 }, Shatter = false }
     })
 
-    -- 3. СКАНЕР КООРДИНАТ (ВБИВАЄ ЗА РУХ ПОРУЧ)
     entity:SetCallback("OnSpawned", function()
         local p = game.Players.LocalPlayer
         local char = p.Character
@@ -38,21 +31,14 @@ local function spawnCease()
         local lastPos = root.Position
 
         task.spawn(function()
-            -- Цикл працює поки сутність існує і гравець живий
             while workspace:FindFirstChild("Cease") and hum.Health > 0 do
                 task.wait(0.1)
-                
                 local model = workspace:FindFirstChild("Cease")
                 if model and model.PrimaryPart then
-                    local distToEntity = (root.Position - model.PrimaryPart.Position).Magnitude
-                    
-                    -- Перевірка на рух, якщо Cease близько (25 блоків)
-                    if distToEntity < 35 then
+                    if (root.Position - model.PrimaryPart.Position).Magnitude < 35 then
                         if (root.Position - lastPos).Magnitude > 0.1 then
                             hum.Health = 0
-                            pcall(function()
-                                firesignal(game.ReplicatedStorage.RemotesFolder.DeathHint.OnClientEvent, {"You died to Cease...", "You moved! Stay perfectly still when he is near."}, "Blue")
-                            end)
+                            firesignal(game.ReplicatedStorage.RemotesFolder.DeathHint.OnClientEvent, {"You died to Cease...", "You moved! Stay perfectly still when he is near."}, "Blue")
                             break
                         end
                     end
@@ -65,5 +51,5 @@ local function spawnCease()
     entity:Run()
 end
 
-
 spawnCease()
+
