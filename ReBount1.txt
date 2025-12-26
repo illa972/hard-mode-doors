@@ -1,0 +1,53 @@
+local function spawnRebound()
+    local spawner = loadstring(game:HttpGet("https://raw.githubusercontent.com/RegularVynixu/Utilities/main/Doors/Entity%20Spawner/V2/Source.lua"))()
+
+    local entity = spawner.Create({
+        Entity = {
+            Name = "Rebound",
+            Asset = "rbxassetid://12254145022",
+            HeightOffset = 0
+        },
+        Movement = {
+            Speed = 100,
+            Delay = 2,
+            Reversed = false
+        },
+        Rebounding = {
+            Enabled = true,
+            Type = "Ambush",
+            Min = 2,
+            Max = 4,
+            Delay = 1
+        },
+        Damage = {
+            Enabled = true,
+            Range = 45,
+            Amount = 100
+        },
+        CameraShake = {
+            Enabled = true,
+            Range = 70,
+            Values = {2, 15, 0.1, 1}
+        },
+        Lights = {
+            Flicker = { Enabled = true, Duration = 2 },
+            Shatter = true,
+            Repair = false
+        }
+    })
+
+    entity:SetCallback("OnKillingPlayer", function()
+        pcall(function()
+            firesignal(game.ReplicatedStorage.RemotesFolder.DeathHint.OnClientEvent, {
+                "Ты погиб от Rebound...", 
+                "Он возвращается несколько раз! Не выходи из шкафа слишком рано."
+            }, "Blue")
+        end)
+    end)
+
+    entity:Run()
+end
+
+-- КОД ДЛЯ ЗАПУСКУ:
+spawnRebound()
+
